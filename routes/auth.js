@@ -9,6 +9,26 @@ const axios = require("axios");
 const { spawn } = require("child_process");
 require("dotenv").config();
 
+// Kullanıcı bilgilerini getir
+router.get("/user/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query(
+      "SELECT id, username, email FROM users WHERE id = $1",
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error("Get user error:", error);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+});
+
 // Kayıt olma
 router.post("/register", async (req, res) => {
   try {
