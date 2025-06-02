@@ -34,24 +34,14 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Film yorumlarını getirme
-router.get('/movie/:movieId', async (req, res) => {
-  try {
-    const { movieId } = req.params;
-
-    const result = await pool.query(
-      `SELECT c.*, u.username
-       FROM comments c
-       JOIN users u ON c.user_id = u.id
-       WHERE c.movie_id = $1
-       ORDER BY c.created_at DESC`,
-      [movieId]
-    );
-
-    res.json(result.rows);
-  } catch (error) {
-    console.error('Get comments error:', error);
-    res.status(500).json({ message: 'Sunucu hatası' });
-  }
-});
+router.get("/comments/:movie_id", async (req, res) => {
+    try {
+      const { movie_id } = req.params;
+      const comments = await pool.query("SELECT comments.*, users.username FROM comments INNER JOIN users ON comments.user_id = users.id WHERE movie_id = $1 ORDER BY created_at DESC", [movie_id]);
+      res.json(comments.rows);
+    } catch (err) {
+      res.status(500).send("Server hatası");
+    }
+  });
 
 module.exports = router; 
