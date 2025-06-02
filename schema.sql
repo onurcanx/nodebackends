@@ -1,0 +1,18 @@
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  username VARCHAR(50) UNIQUE NOT NULL,
+  email VARCHAR(100) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE comments (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  movie_id INTEGER NOT NULL,
+  comment TEXT NOT NULL,
+  sentiment VARCHAR(20),
+  sentiment_score FLOAT,
+  keywords TEXT[],
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+); 
