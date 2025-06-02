@@ -34,7 +34,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Film yorumlarını getirme
-router.get("/comments/:movie_id", async (req, res) => {
+router.get("/:movie_id", async (req, res) => {
     try {
       const { movie_id } = req.params;
       const comments = await pool.query("SELECT comments.*, users.username FROM comments INNER JOIN users ON comments.user_id = users.id WHERE movie_id = $1 ORDER BY created_at DESC", [movie_id]);

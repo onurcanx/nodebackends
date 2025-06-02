@@ -20,7 +20,7 @@ app.use(express.json());
 
 // Rotalar
 app.use("/api/auth", require("./routes/auth"));
-app.use("/api/comments", require("./routes/comments"));
+app.use("/api/auth/comments", require("./routes/comments"));
 
 // Sağlık kontrolü endpoint'i
 app.get("/api/health", (req, res) => {
