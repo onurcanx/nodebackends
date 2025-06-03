@@ -54,6 +54,7 @@ router.post("/reset-password", async (req, res) => {
 // Kullanıcı kaydı
 router.post("/register", async (req, res) => {
   try {
+    console.log("Gelen veri:", req.body);
     const { username, email, password } = req.body;
     const existingUser = await pool.query("SELECT * FROM users WHERE email = $1 OR username = $2", [email, username]);
     if (existingUser.rows.length > 0) return res.status(400).json({ message: "Bu e-posta veya kullanıcı adı zaten kayıtlı!" });
@@ -69,6 +70,7 @@ router.post("/register", async (req, res) => {
 // Kullanıcı girişi
 router.post("/login", async (req, res) => {
   try {
+    console.log("Gelen veri:", req.body);
     const { usernameOrEmail, password } = req.body;
     const user = await pool.query("SELECT * FROM users WHERE username = $1 OR email = $1", [usernameOrEmail]);
     if (user.rows.length === 0) return res.status(401).json({ message: "Geçersiz kullanıcı adı veya e-posta" });
