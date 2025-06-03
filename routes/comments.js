@@ -76,11 +76,9 @@ router.get("/movie/:movieId", async (req, res) => {
 });
 */
 
-const axios = require('axios'); // en üste, importlar arasına
-
-// Kod buraya
-app.get('analyze/:movieId', async (req, res) => {
+router.get('/analyze/:movieId', async (req, res) => {
   const movieId = req.params.movieId;
+
   try {
     const pythonResponse = await axios.get(`${PYTHON_BACKEND}/analyze/${movieId}`);
     res.json(pythonResponse.data);
