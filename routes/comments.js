@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require("../config/db");
 const authenticateToken = require("../middleware/authMiddleware");
 const { spawn } = require('child_process');
-
+PYTHON_BACKEND="https://pythonbackend-4l6k.onrender.com" ;
 // Belirli bir filmin yorumlarını getir
 router.get("/movie/:movieId", async (req, res) => {
     try {
@@ -29,7 +29,7 @@ router.get("/movie/:movieId", async (req, res) => {
 });
 
 // Yorum analizi yap
-router.get("/analyze/:movieId", async (req, res) => {
+/* router.get("/analyze/:movieId", async (req, res) => {
     try {
         const { movieId } = req.params;
         
@@ -72,6 +72,23 @@ router.get("/analyze/:movieId", async (req, res) => {
             error: err.message 
         });
     }
+});
+*/
+
+const axios = require('axios'); // en üste, importlar arasına
+
+// Kod buraya
+app.get('analyze/:movieId', async (req, res) => {
+  const movieId = req.params.movieId;
+  const PYTHON_BACKEND = process.env.PYTHON_BACKEND_URL;
+
+  try {
+    const pythonResponse = await axios.get(`${PYTHON_BACKEND}/analyze/${movieId}`);
+    res.json(pythonResponse.data);
+  } catch (error) {
+    console.error('Python backend çağrısında hata:', error.message);
+    res.status(500).json({ error: 'Analiz sırasında hata oluştu' });
+  }
 });
 
 // Yeni yorum ekle
