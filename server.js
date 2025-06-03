@@ -7,7 +7,7 @@ const port = process.env.PORT || 5000;
 
 // CORS ayarları
 const corsOptions = {
-  origin: ['https://frontend-phi-ten-88.vercel.app', 'http://localhost:3000'],
+  origin: ['https://frontend-phi-ten-88.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
@@ -19,7 +19,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 // Rotalar
-app.use("/api/auth", require("./routes/auth"));
+app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/auth/comments", require("./routes/comments"));
 
 // Sağlık kontrolü endpoint'i
