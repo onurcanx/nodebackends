@@ -3,7 +3,8 @@ const router = express.Router();
 const pool = require("../config/db");
 const authenticateToken = require("../middleware/authMiddleware");
 const { spawn } = require('child_process');
-PYTHON_BACKEND="https://pythonbackend-4l6k.onrender.com" ;
+const PYTHON_BACKEND="https://pythonbackend-4l6k.onrender.com" ;
+
 // Belirli bir filmin yorumlarını getir
 router.get("/movie/:movieId", async (req, res) => {
     try {
@@ -80,8 +81,6 @@ const axios = require('axios'); // en üste, importlar arasına
 // Kod buraya
 app.get('analyze/:movieId', async (req, res) => {
   const movieId = req.params.movieId;
-  const PYTHON_BACKEND = process.env.PYTHON_BACKEND_URL;
-
   try {
     const pythonResponse = await axios.get(`${PYTHON_BACKEND}/analyze/${movieId}`);
     res.json(pythonResponse.data);
