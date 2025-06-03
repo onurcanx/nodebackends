@@ -13,19 +13,26 @@ require("dotenv").config();
 router.get("/user/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query(
-      "SELECT id, username, email, is_admin FROM users WHERE id = $1",
+    console.log("Kullanıcı ID:", id);
+    
+    // created_at sütunu olmadığı için sadece temel bilgileri getir
+    const user = await pool.query(
+      "SELECT id, username, email, is_admin FROM users WHERE id = $1", 
       [id]
     );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    
+    if (user.rows.length === 0) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı." });
     }
 
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error("Get user error:", error);
-    res.status(500).json({ message: "Sunucu hatası" });
+    console.log("Kullanıcı bulundu:", user.rows[0]);
+    res.json(user.rows[0]);
+  } catch (err) {
+    console.error("Kullanıcı bilgileri alınırken hata:", err);
+    res.status(500).json({ 
+      message: "Sunucu hatası",
+      error: err.message
+    });
   }
 });
 
@@ -33,90 +40,34 @@ router.get("/user/:id", async (req, res) => {
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
-
-    // Kullanıcı adı veya email kontrolü
-    const userCheck = await pool.query(
-      "SELECT * FROM users WHERE username = $1 OR email = $2",
-      [username, email]
-    );
-
-    if (userCheck.rows.length > 0) {
-      return res.status(400).json({ message: "Bu kullanıcı adı veya email zaten kullanımda" });
-    }
-
-    // Şifre hashleme
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Kullanıcı kaydetme
-    const result = await pool.query(
-      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email",
-      [username, email, hashedPassword]
-    );
-
-    // Token oluşturma
-    const token = jwt.sign(
-      { id: result.rows[0].id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
-
-    res.status(201).json({
-      token,
-      user: {
-        id: result.rows[0].id,
-        username: result.rows[0].username,
-        email: result.rows[0].email
-      }
-    });
-  } catch (error) {
-    console.error("Register error:", error);
+    const existingUser = await pool.query("SELECT * FROM users WHERE email = $1 OR username = $2", [email, username]);
+    if (existingUser.rows.length > 0) return res.status(400).json({ message: "Bu e-posta veya kullanıcı adı zaten kayıtlı!" });
+    
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUser = await pool.query("INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *", [username, email, hashedPassword]);
+    res.json(newUser.rows[0]);
+  } catch (err) {
     res.status(500).json({ message: "Sunucu hatası" });
   }
 });
-
-// Giriş yapma
+//Login
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
-
-    // Kullanıcı kontrolü
-    const result = await pool.query(
-      "SELECT * FROM users WHERE email = $1",
-      [email]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(400).json({ message: "Geçersiz email veya şifre" });
-    }
-
-    const user = result.rows[0];
-
-    // Şifre kontrolü
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Geçersiz email veya şifre" });
-    }
-
-    // Token oluşturma
-    const token = jwt.sign(
-      { id: user.id },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
-    );
-
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email
-      }
+    const { usernameOrEmail, password } = req.body;
+    const user = await pool.query("SELECT * FROM users WHERE username = $1 OR email = $1", [usernameOrEmail]);
+    if (user.rows.length === 0) return res.status(401).json({ message: "Geçersiz kullanıcı adı veya e-posta" });
+    
+    const validPassword = await bcrypt.compare(password, user.rows[0].password);
+    if (!validPassword) return res.status(401).json({ message: "Geçersiz şifre" });
+    
+    const token = jwt.sign({ id: user.rows[0].id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    res.json({ 
+      token, 
+      user_id: user.rows[0].id,
+      username: user.rows[0].username 
     });
-  } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ message: "Sunucu hatası" });
+  } catch (err) {
+    res.status(500).send("Server hatası");
   }
 });
-
 module.exports = router; 
